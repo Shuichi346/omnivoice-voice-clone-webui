@@ -4,7 +4,7 @@ A WebUI application that clones a voice from a YouTube URL, microphone recording
 
 ## How to Youtube 
 <a href="https://www.youtube.com/watch?v=QbgzrLisIhQ">
-  <img src="https://img.youtube.com/vi/QbgzrLisIhQ/0.jpg" width="640" alt="動画タイトル">
+  <img src="https://img.youtube.com/vi/QbgzrLisIhQ/0.jpg" width="480" alt="動画タイトル">
 </a>
 
 ## Features
