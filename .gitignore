@@ -1,0 +1,68 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# ===== Virtual Environment =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== uv =====
+# uv.lock is committed for reproducibility (not excluded)
+# However, cache is excluded
+.uv_cache/
+
+# ===== IDE / Editor =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Qwen3-TTS Model Weights =====
+# Models are several GB and should not be included in the repository
+# Users should obtain them via hf download
+models/
+*.safetensors
+*.bin
+*.gguf
+*.ggml
+
+# ===== Whisper Model =====
+# GGML models automatically downloaded by pywhispercpp
+*.ggml
+ggml-*.bin
+
+# ===== Temporary / Runtime =====
+tmp/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.opus
+
+# ===== Voice Profiles =====
+# Clone profiles are user-specific data
+# Not included in public repository (only empty directories kept via .gitkeep)
+voice_profiles/*.pt
+
+# ===== Logs =====
+*.log
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== Environment Variables =====
+.env
+.env.local
+.env.*
