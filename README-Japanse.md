@@ -4,7 +4,7 @@ YouTubeのURL、マイクロフォン録音、またはアップロードされ�
 
 ## 使用方法 Youtube
 <a href="https://www.youtube.com/watch?v=QbgzrLisIhQ">
-  <img src="https://img.youtube.com/vi/QbgzrLisIhQ/0.jpg" width="640" alt="動画タイトル">
+  <img src="https://img.youtube.com/vi/QbgzrLisIhQ/0.jpg" width="480" alt="動画タイトル">
 </a>
 
 ## 機能
