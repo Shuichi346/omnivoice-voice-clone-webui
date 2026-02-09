@@ -2,6 +2,11 @@
 
 YouTubeのURL、マイクロフォン録音、またはアップロードされたオーディオファイルから音声をクローンし、クローンされた音声で任意のテキストを合成するWebUIアプリケーション。
 
+## 使用方法 Youtube
+<a href="https://www.youtube.com/watch?v=QbgzrLisIhQ">
+  <img src="https://img.youtube.com/vi/QbgzrLisIhQ/0.jpg" width="640" alt="動画タイトル">
+</a>
+
 ## 機能
 
 - 指定されたタイムスタンプでYouTube URLから3秒のオーディオクリップを自動ダウンロード
