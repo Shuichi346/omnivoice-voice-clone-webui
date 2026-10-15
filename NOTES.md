@@ -1,5 +1,10 @@
 # Notes
 
+## 2026-10-15 — Repository rename
+
+- The GitHub repository and local checkout now use `omnivoice-voice-clone-webui`; `origin` already points to `https://github.com/Shuichi346/omnivoice-voice-clone-webui.git`. Updated both README clone commands, the project repository URL, and the agent introduction; removed obsolete README wording about retaining the original directory name.
+- Keep the distribution name `omnivoice-clone-webui`, source module `voice_clone_webui`, and launch command `voice-clone-webui` independent of the repository name. Runtime storage paths derive from `config.py`'s file location, so this rename does not require application-code or dependency changes. Earlier dated notes describe the checkout at the time of that work.
+
 ## 2026-10-15 — README refresh
 
 - Replaced the duplicated setup instructions with one Git clone → `uv sync --locked` → `uv run --locked voice-clone-webui` path checked against the project entry point. The READMEs distinguish the verified Mac mini M4 / 24 GB environment from an unmeasured minimum memory requirement and explain on-demand model loading, separate transcription/TTS language controls, and optional profile saving.

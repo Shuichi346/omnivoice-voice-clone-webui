@@ -33,8 +33,8 @@ Run these commands in Terminal:
 ```bash
 brew install uv ffmpeg
 
-git clone https://github.com/Shuichi346/qwen-voice-clone-webui.git
-cd qwen-voice-clone-webui
+git clone https://github.com/Shuichi346/omnivoice-voice-clone-webui.git
+cd omnivoice-voice-clone-webui
 
 uv sync --locked
 uv run --locked voice-clone-webui
@@ -44,7 +44,7 @@ Open **[http://127.0.0.1:7860](http://127.0.0.1:7860)** in your browser. Stop th
 
 `uv sync --locked` creates the project-local `.venv` using the committed dependency lockfile. No separate environment activation is needed. See the [uv project guide](https://docs.astral.sh/uv/guides/projects/) for how uv manages the project environment and Python.
 
-Models load on first use: Whisper when transcribing reference audio, and OmniVoice when saving a profile or generating speech. Missing weights are downloaded automatically, so those first operations take longer. The repository directory retains its original `qwen-voice-clone-webui` name; the current speech backend is OmniVoice.
+Models load on first use: Whisper when transcribing reference audio, and OmniVoice when saving a profile or generating speech. Missing weights are downloaded automatically, so those first operations take longer.
 
 ## Use the WebUI
 

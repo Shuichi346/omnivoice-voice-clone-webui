@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project instructions for coding agents working in `Shuichi346/qwen-voice-clone-webui`.
+Project instructions for coding agents working in `Shuichi346/omnivoice-voice-clone-webui`.
 
 ## Environment and verification
 

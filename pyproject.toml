@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/Shuichi346/qwen-voice-clone-webui"
+Repository = "https://github.com/Shuichi346/omnivoice-voice-clone-webui"
 
 [project.scripts]
 voice-clone-webui = "voice_clone_webui.app:main"

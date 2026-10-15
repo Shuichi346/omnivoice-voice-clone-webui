@@ -33,8 +33,8 @@
 ```bash
 brew install uv ffmpeg
 
-git clone https://github.com/Shuichi346/qwen-voice-clone-webui.git
-cd qwen-voice-clone-webui
+git clone https://github.com/Shuichi346/omnivoice-voice-clone-webui.git
+cd omnivoice-voice-clone-webui
 
 uv sync --locked
 uv run --locked voice-clone-webui
@@ -44,7 +44,7 @@ uv run --locked voice-clone-webui
 
 `uv sync --locked`は、コミット済みの依存関係ロックファイルを使ってプロジェクト内に`.venv`を作成します。別途、仮想環境を有効化する必要はありません。uvによるプロジェクト環境とPythonの管理方法については、[uvのプロジェクトガイド](https://docs.astral.sh/uv/guides/projects/)を参照してください。
 
-モデルは初回使用時に読み込まれます。参照音声の文字起こし時にWhisper、プロフィールの保存または音声生成時にOmniVoiceが読み込まれます。重みがない場合は自動でダウンロードされるため、これらの操作には初回だけ時間がかかります。リポジトリのディレクトリ名は従来どおり`qwen-voice-clone-webui`ですが、現在の音声生成バックエンドはOmniVoiceです。
+モデルは初回使用時に読み込まれます。参照音声の文字起こし時にWhisper、プロフィールの保存または音声生成時にOmniVoiceが読み込まれます。重みがない場合は自動でダウンロードされるため、これらの操作には初回だけ時間がかかります。
 
 ## WebUIの使い方
 

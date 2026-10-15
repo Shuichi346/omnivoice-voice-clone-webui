@@ -32,6 +32,7 @@
 - Changed saved profiles to a versioned tensor/container format; legacy pickle profiles now require recreation from the original reference audio.
 - Updated English and Japanese setup instructions for macOS 26.x, locked dependency installation, and development checks.
 - Rewrote the English README and its Japanese translation around one installation path, illustrated usage, configuration, stored files, and troubleshooting.
+- Updated repository URLs, clone-directory instructions, and agent guidance for the renamed `omnivoice-voice-clone-webui` repository.
 
 ### Removed
 
