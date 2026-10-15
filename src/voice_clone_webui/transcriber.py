@@ -2,6 +2,8 @@
 
 import subprocess
 from pathlib import Path
+from threading import RLock
+from uuid import uuid4
 
 from voice_clone_webui.config import (
     WHISPER_MODEL_NAME,
@@ -15,18 +17,20 @@ _WHISPER_SAMPLE_RATE = 16000
 
 # Module-level model holder (lazy initialization)
 _whisper_model = None
+_whisper_lock = RLock()
 
 
 def _get_whisper_model():
     """Get the singleton instance of the Whisper model."""
     global _whisper_model
-    if _whisper_model is None:
-        from pywhispercpp.model import Model
-        _whisper_model = Model(
-            WHISPER_MODEL_NAME,
-            print_realtime=False,
-            print_progress=False,
-        )
+    with _whisper_lock:
+        if _whisper_model is None:
+            from pywhispercpp.model import Model
+            _whisper_model = Model(
+                WHISPER_MODEL_NAME,
+                print_realtime=False,
+                print_progress=False,
+            )
     return _whisper_model
 
 
@@ -42,12 +46,17 @@ def _ensure_16khz(audio_path: Path) -> Path:
     import soundfile as sf
 
     info = sf.info(str(audio_path))
-    if info.samplerate == _WHISPER_SAMPLE_RATE:
+    if (
+        info.samplerate == _WHISPER_SAMPLE_RATE
+        and info.channels == 1
+        and info.format == "WAV"
+        and info.subtype == "PCM_16"
+    ):
         return audio_path
 
     # Resampling required
     TMP_DIR.mkdir(parents=True, exist_ok=True)
-    resampled_path = TMP_DIR / "whisper_input_16k.wav"
+    resampled_path = TMP_DIR / f"whisper_{uuid4().hex}.wav"
 
     cmd = [
         "ffmpeg",
@@ -58,9 +67,13 @@ def _ensure_16khz(audio_path: Path) -> Path:
         "-sample_fmt", "s16",
         str(resampled_path),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    if result.returncode != 0:
-        raise RuntimeError(f"ffmpeg resampling error: {result.stderr.strip()}")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if result.returncode != 0:
+            raise RuntimeError(f"ffmpeg resampling error: {result.stderr.strip()}")
+    except Exception:
+        resampled_path.unlink(missing_ok=True)
+        raise
 
     return resampled_path
 
@@ -87,9 +100,13 @@ def transcribe_audio(
     whisper_input = _ensure_16khz(audio_path)
 
     # Resolve language code
-    lang_code = WHISPER_LANGUAGES.get(language, "")
-
-    model = _get_whisper_model()
-    segments = model.transcribe(str(whisper_input), language=lang_code)
-    text = " ".join(seg.text for seg in segments).strip()
-    return text
+    try:
+        lang_code = WHISPER_LANGUAGES[language]
+        # whisper.cpp uses mutable decode parameters and a shared context.
+        with _whisper_lock:
+            model = _get_whisper_model()
+            segments = model.transcribe(str(whisper_input), language=lang_code)
+            return " ".join(seg.text for seg in segments).strip()
+    finally:
+        if whisper_input != audio_path:
+            whisper_input.unlink(missing_ok=True)

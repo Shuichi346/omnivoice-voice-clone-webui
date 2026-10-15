@@ -29,7 +29,7 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# ===== Qwen3-TTS Model Weights =====
+# ===== TTS Model Weights =====
 # Models are several GB and should not be included in the repository
 # Users should obtain them via hf download
 models/

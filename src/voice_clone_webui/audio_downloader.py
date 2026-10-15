@@ -3,10 +3,13 @@
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlencode, urlparse
 
-from voice_clone_webui.config import CLIP_DURATION_SEC, TMP_DIR
+import soundfile as sf
+
+from voice_clone_webui.config import CLIP_CONTEXT_SEC, TMP_DIR
 
 
 def _parse_start_seconds(url: str) -> int:
@@ -39,7 +42,7 @@ def _parse_start_seconds(url: str) -> int:
 
     # Hours/minutes/seconds pattern: 1h2m3s, 16m58s, 30s, etc.
     pattern = r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?"
-    match = re.match(pattern, t_value)
+    match = re.fullmatch(pattern, t_value)
     if match:
         hours = int(match.group(1) or 0)
         minutes = int(match.group(2) or 0)
@@ -62,14 +65,12 @@ def _strip_time_param(url: str) -> str:
     params = parse_qs(parsed.query, keep_blank_values=True)
     params.pop("t", None)
 
-    # Rebuild query string
-    new_query_parts = []
-    for key, values in params.items():
-        for value in values:
-            new_query_parts.append(f"{key}={value}")
-    new_query = "&".join(new_query_parts)
-
-    return parsed._replace(query=new_query).geturl()
+    fragment = parse_qs(parsed.fragment, keep_blank_values=True)
+    fragment.pop("t", None)
+    return parsed._replace(
+        query=urlencode(params, doseq=True),
+        fragment=urlencode(fragment, doseq=True),
+    ).geturl()
 
 
 def _resample_to_16khz(input_path: Path, output_path: Path) -> Path:
@@ -133,7 +134,7 @@ def _trim_audio(input_path: Path, output_path: Path, duration_sec: int) -> Path:
     return output_path
 
 
-def download_youtube_audio(url: str) -> tuple[Path, str]:
+def download_youtube_audio(url: str, output_dir: Path | None = None) -> tuple[Path, str]:
     """Download audio from a YouTube URL.
 
     yt-dlp is installed as a Python package via pyproject.toml.
@@ -152,12 +153,23 @@ def download_youtube_audio(url: str) -> tuple[Path, str]:
     Raises:
         RuntimeError: If yt-dlp or ffmpeg execution fails
     """
-    # Create output directory
-    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or parsed.hostname not in {
+        "youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com",
+        "youtu.be", "www.youtu.be",
+    } or parsed.username or parsed.password or parsed.port not in {None, 80, 443}:
+        raise ValueError("Please enter a valid YouTube HTTP(S) URL.")
+
+    # Isolate downloads so another request cannot overwrite reference audio.
+    output_dir = TMP_DIR if output_dir is None else output_dir
+    output_dir.mkdir(parents=True, exist_ok=True)
+    request_dir = Path(tempfile.mkdtemp(prefix="youtube_", dir=output_dir))
 
     # Calculate time range
-    start_sec = _parse_start_seconds(url)
-    end_sec = start_sec + CLIP_DURATION_SEC
+    timestamp = _parse_start_seconds(url)
+    start_sec = max(0, timestamp - CLIP_CONTEXT_SEC)
+    end_sec = timestamp + CLIP_CONTEXT_SEC
+    duration_sec = end_sec - start_sec
     start_mmss = _seconds_to_mmss(start_sec)
     end_mmss = _seconds_to_mmss(end_sec)
     section_spec = f"*{start_mmss}-{end_mmss}"
@@ -166,23 +178,21 @@ def download_youtube_audio(url: str) -> tuple[Path, str]:
     clean_url = _strip_time_param(url)
 
     # Output file paths (yt-dlp download destination → final output after trimming)
-    raw_output_path = TMP_DIR / "ref_audio_raw"
-    final_output_path = TMP_DIR / "ref_audio.wav"
-
-    # Remove existing files
-    for pattern in ["ref_audio_raw.*", "ref_audio.wav"]:
-        for existing in TMP_DIR.glob(pattern):
-            existing.unlink()
+    raw_output_path = request_dir / "ref_audio_raw"
+    final_output_path = request_dir / "ref_audio.wav"
 
     # Build yt-dlp command (executed as Python module)
     cmd = [
         sys.executable, "-m", "yt_dlp",
+        "-f", "bestaudio",
         "--download-sections", section_spec,
+        "--force-keyframes-at-cuts",
         "-x",
         "--audio-format", "wav",
         "-o", str(raw_output_path.with_suffix(".%(ext)s")),
         "--no-playlist",
         "--quiet",
+        "--",
         clean_url,
     ]
 
@@ -196,18 +206,20 @@ def download_youtube_audio(url: str) -> tuple[Path, str]:
     # Verify yt-dlp output file
     raw_wav_path = raw_output_path.with_suffix(".wav")
     if not raw_wav_path.exists():
-        candidates = list(TMP_DIR.glob("ref_audio_raw.*"))
-        if candidates:
-            raw_wav_path = candidates[0]
-        else:
-            raise RuntimeError("Failed to download audio file.")
+        raise RuntimeError("Failed to download audio file.")
 
-    # Precisely trim to 3 seconds + convert to 16kHz mono with ffmpeg (single step)
-    _trim_audio(raw_wav_path, final_output_path, CLIP_DURATION_SEC)
+    # Cap the decoded window and normalize it for transcription and editing.
+    _trim_audio(raw_wav_path, final_output_path, duration_sec)
+    audio_info = sf.info(final_output_path)
+    if audio_info.frames == 0:
+        raise RuntimeError("No audio is available around the requested timestamp.")
 
     # Remove intermediate file
     if raw_wav_path.exists() and raw_wav_path != final_output_path:
         raw_wav_path.unlink()
 
-    status = f"Download complete: {start_mmss} ~ {end_mmss} ({CLIP_DURATION_SEC} seconds)"
+    status = (
+        f"Download complete: {audio_info.duration:.2f} seconds available "
+        f"(requested {start_mmss} ~ {end_mmss})."
+    )
     return final_output_path, status

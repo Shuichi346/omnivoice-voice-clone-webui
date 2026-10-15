@@ -7,13 +7,15 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # === Model Settings ===
 # Specify path if model is downloaded locally. Otherwise use HuggingFace ID.
-QWEN_TTS_MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
+OMNIVOICE_MODEL_ID = "k2-fsa/OmniVoice"
 WHISPER_MODEL_NAME = "large-v3-turbo"
+GENERATION_STEPS = 32
+GENERATION_SPEED = 1.0
 
 # === Device Settings (Mac M4 MPS) ===
 DEVICE = "mps"
-# bfloat16/float16 can be unstable on MPS. float32 is safer.
-TORCH_DTYPE_STR = "float32"
+# Use half-precision model weights to reduce MPS memory use.
+TORCH_DTYPE_STR = "float16"
 # FlashAttention2 is not supported on MPS. Use SDPA instead.
 ATTN_IMPLEMENTATION = "sdpa"
 
@@ -22,7 +24,8 @@ VOICE_PROFILES_DIR = PROJECT_ROOT / "voice_profiles"
 TMP_DIR = PROJECT_ROOT / "tmp"
 
 # === Audio Clip Settings ===
-CLIP_DURATION_SEC = 3
+CLIP_CONTEXT_SEC = 8
+CLIP_DURATION_SEC = CLIP_CONTEXT_SEC * 2
 
 # === Server Settings ===
 SERVER_NAME = "127.0.0.1"
@@ -50,18 +53,3 @@ WHISPER_LANGUAGE_CHOICES = list(WHISPER_LANGUAGES.keys())
 
 # Whisper language default value
 WHISPER_LANGUAGE_DEFAULT = "Auto"
-
-# === Qwen TTS Supported Languages ===
-SUPPORTED_LANGUAGES = [
-    "Auto",
-    "Chinese",
-    "English",
-    "Japanese",
-    "Korean",
-    "French",
-    "German",
-    "Spanish",
-    "Portuguese",
-    "Russian",
-    "Italian",
-]
